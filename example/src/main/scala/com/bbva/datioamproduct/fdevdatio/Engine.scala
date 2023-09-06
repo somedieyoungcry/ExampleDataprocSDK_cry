@@ -2,6 +2,7 @@ package com.bbva.datioamproduct.fdevdatio
 
 import com.bbva.datioamproduct.fdevdatio.common.ExampleConfigConstants
 import com.bbva.datioamproduct.fdevdatio.common.example.StaticVals.JoinTypes
+import com.bbva.datioamproduct.fdevdatio.common.example.StaticVals.devName.dName
 import com.bbva.datioamproduct.fdevdatio.common.namings.input.Customers._
 import com.bbva.datioamproduct.fdevdatio.common.namings.output.CustomersPhones._
 import com.bbva.datioamproduct.fdevdatio.transformations.Transformations._
@@ -26,6 +27,8 @@ class Engine extends SparkProcess with IOUtils {
     val config: Config = runtimeContext.getConfig
 
     val jwkDate: String = config.getString(ExampleConfigConstants.JwkDate)
+
+    logger.info(s"Hola soy $dName y ya quite el nombre parametrizado")
 
     //Load inputs
     val phonesConfig: Config = config.getConfig(ExampleConfigConstants.PhonesConfig)

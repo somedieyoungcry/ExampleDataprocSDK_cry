@@ -14,4 +14,8 @@ object StaticVals {
     val INNER: String = "inner"
   }
 
+  case object devName{
+    val dName: String = "Juan Fuentes Saldaña"
+  }
+
 }
