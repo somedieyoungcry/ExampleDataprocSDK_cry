@@ -12,6 +12,8 @@ object StaticVals {
     val NationalitiesTag: String = "fdevNationalities"
     val PlayersTag: String = "fdevPlayers"
 
+    val CutOffDateTag: String = "cutoffDate"
+
   }
 
   case class Player(name: String, overall: Int) extends Serializable
@@ -19,5 +21,21 @@ object StaticVals {
   case object CourseInt{
 
     val Zero:Int = 0
+    val TwoH: Int = 200
+    val OneHEF: Int = 185
+    val OneHSF: Int = 175
+    val OneHSixF: Int = 165
+
   }
+
+  case object AlphabeticConstants {
+
+    val AChar: Char = 'A'
+    val BChar: Char = 'B'
+    val CChar: Char = 'C'
+    val DChar: Char = 'D'
+    val EChar: Char = 'E'
+
+  }
+
 }
