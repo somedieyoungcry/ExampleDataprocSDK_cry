@@ -8,6 +8,10 @@ import org.apache.spark.sql.functions.{col, lit, when}
 
 package object fields {
 
+  case object Age extends Field {
+    override val name: String = "age"
+  }
+
   case object HeightCM extends Field {
     override val name: String = "height_cm"
   }
@@ -48,6 +52,15 @@ package object fields {
     override val name: String = "nationality_id"
   }
 
+  case object CatAge extends Field{
+    override val name: String = "cat_age"
+    def apply(): Column = {
+      when(Age.column <= 20 || Overall.column > 80, AChar)
+        .when(Age.column <= 23 || Overall.column > 70, BChar)
+        .when(Age.column <= 30, CChar)
+        .otherwise(DChar) alias name
+    }
+  }
 
   case object CatHeight extends Field {
     override val name: String = "cat_height"

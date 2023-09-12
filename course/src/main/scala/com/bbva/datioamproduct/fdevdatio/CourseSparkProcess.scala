@@ -3,7 +3,7 @@ package com.bbva.datioamproduct.fdevdatio
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseConfigConstants.{ClubPlayersTag, ClubTeamsTag, InputTag, NationalPlayersTag, NationalTeamsTag, NationalitiesTag, PlayersTag}
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseInt.Zero
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.JoinTypes.{InnerJoin, LeftAnti, LeftJoin, LeftOuter, LeftSemi, OuterJoin}
-import com.bbva.datioamproduct.fdevdatio.common.fields.{CatHeight, ClubTeamId, LongName, NationTeamId, NationalityId, Overall, PlayerPositions, Potential, ShortName, SofifaId}
+import com.bbva.datioamproduct.fdevdatio.common.fields.{CatAge, CatHeight, ClubTeamId, LongName, NationTeamId, NationalityId, Overall, PlayerPositions, Potential, ShortName, SofifaId}
 import com.bbva.datioamproduct.fdevdatio.utils.{IOUtils, SuperConfig}
 import com.datio.dataproc.sdk.api.SparkProcess
 import com.datio.dataproc.sdk.api.context.RuntimeContext
@@ -70,8 +70,8 @@ class CourseSparkProcess extends SparkProcess with IOUtils{
       .join(dfC, Seq(SofifaId.name), LeftSemi)
     result.show()"""
 
-    val fullDF: DataFrame = dfMap.getFullDF
-    fullDF.show()
+      val fullDF = dfMap.getFullDF
+      fullDF.show()
 
 
     Zero
