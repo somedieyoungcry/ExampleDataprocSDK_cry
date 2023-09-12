@@ -1,8 +1,9 @@
 package com.bbva.datioamproduct.fdevdatio
 
-import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseConfigConstants.{ClubPlayersTag, ClubTeamsTag, InputTag, NationalitiesTag, PlayersTag}
+import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseConfigConstants.{ClubPlayersTag, ClubTeamsTag, InputTag, NationalPlayersTag, NationalTeamsTag, NationalitiesTag, PlayersTag}
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseInt.Zero
-import com.bbva.datioamproduct.fdevdatio.common.fields.{CatHeight}
+import com.bbva.datioamproduct.fdevdatio.common.StaticVals.JoinTypes.{InnerJoin, LeftAnti, LeftJoin, LeftOuter, LeftSemi, OuterJoin}
+import com.bbva.datioamproduct.fdevdatio.common.fields.{CatHeight, ClubTeamId, LongName, NationTeamId, NationalityId, Overall, PlayerPositions, Potential, ShortName, SofifaId}
 import com.bbva.datioamproduct.fdevdatio.utils.{IOUtils, SuperConfig}
 import com.datio.dataproc.sdk.api.SparkProcess
 import com.datio.dataproc.sdk.api.context.RuntimeContext
@@ -10,7 +11,7 @@ import com.typesafe.config.Config
 import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 import org.slf4j.{Logger, LoggerFactory}
 import com.bbva.datioamproduct.fdevdatio.transformations._
-import org.apache.spark.sql.functions.{avg, col}
+import org.apache.spark.sql.functions.{avg, col, count}
 
 class CourseSparkProcess extends SparkProcess with IOUtils{
 
@@ -26,52 +27,52 @@ class CourseSparkProcess extends SparkProcess with IOUtils{
       .filterMinContractYear
       .show()*/
 
-    /*dfMap(ClubPlayersTag)
+    """dfMap(ClubPlayersTag)
       .magicMethod
-      .show(100)*/
+      .show(100)
 
-    """val aggVal: Double = dfMap(PlayersTag)
+    val aggVal: Double = dfMap(PlayersTag)
       .withColumn(CatHeight.name, CatHeight())
       .filter(col(CatHeight.name) === "D").agg(avg("height_cm")).collect()(0).getDouble(0)
 
     print(aggVal)"""
 
+    // SECCION DE JOINS
+    """val dfA: DataFrame = dfMap(PlayersTag)
+    val dfB: DataFrame = dfMap(ClubPlayersTag)
+    val dfC: DataFrame = dfMap(NationalPlayersTag)
+    val dfD: DataFrame = dfMap(ClubTeamsTag)
+    val dfE: DataFrame = dfMap(NationalitiesTag)
+    val dfF: DataFrame = dfMap(NationalTeamsTag)
 
 
+    val resultDF: DataFrame = dfA.join(dfB, Seq(SofifaId.name, ClubTeamId.name), LeftJoin)
+    // resultDF.show()
+
+    val resultDF2: DataFrame = dfA.join(dfB, dfA(SofifaId.name) === dfB(SofifaId.name) &&
+      dfA(ClubTeamId.name) === dfB(ClubTeamId.name), LeftJoin)
+    // resultDF2.show()
+
+    val resultA: DataFrame = dfMap(ClubPlayersTag)
+      .join(dfMap(NationalPlayersTag), Seq(SofifaId.name), OuterJoin)
+
+    val resultB: DataFrame = dfB.join(dfC, Seq(SofifaId.name), InnerJoin)
+    //  print(">>> ", resultB.count())
+
+    val resultC: DataFrame = dfC.join(dfB, Seq(SofifaId.name), LeftAnti)
+
+    val resultD: DataFrame = dfC.join(dfB, Seq(SofifaId.name), OuterJoin)
+      .where(SofifaId.column isin(211592, 198479, 223074, 239952, 243009))
 
 
-   """ val playersDF: DataFrame = dfMap(PlayersTag)
-    val filteredDF: DataFrame = playersDF.filter(col(CatHeight.name) === "D")
+    val result: DataFrame = dfA
+      .join(dfB, Seq(SofifaId.name), LeftAnti)
+      .join(dfC, Seq(SofifaId.name), LeftSemi)
+    result.show()"""
 
-    val averageHeight: Double = filteredDF.agg(avg("height_cm")).collect()(0).getDouble(0)
+    val fullDF: DataFrame = dfMap.getFullDF
+    fullDF.show()
 
-    logger.info(s"Promedio de estatura para jugadores con cat_height=D: $averageHeight")"""
-
-
-    /*dfMap(ClubTeamsTag)
-      .filterMaxLeagueLevel
-      .show()*/
-
-
-    """val cutOffDate: String = config.getString("courseJob.params.cutoffDate")
-    val dfOne: DataFrame = dfMap(PlayersTag)
-      .filter(col("dob") === cutOffDate)
-
-    val dfTwo: DataFrame = dfOne
-      .select(col("dob"))
-
-    dfTwo.show()"""
-
-    // Esto corresponde al vid #6
-
-   """val nationalityID: String = config.getString("courseJob.params.nationalityID")
-    val dfOne: DataFrame = dfMap(PlayersTag)
-      .filter(col("nationality_id") === nationalityID)
-
-    val dfTwo: DataFrame = dfOne
-      .select(col("nationality_id"))
-
-    dfTwo.show()"""
 
     Zero
   }

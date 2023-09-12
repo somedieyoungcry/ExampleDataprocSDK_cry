@@ -12,6 +12,43 @@ package object fields {
     override val name: String = "height_cm"
   }
 
+  case object SofifaId extends Field {
+    override val name: String = "sofifa_id"
+  }
+
+  case object ClubTeamId extends Field {
+    override val name: String = "club_team_id"
+  }
+
+  case object NationTeamId extends Field {
+    override val name: String = "nation_team_id"
+  }
+
+  case object ShortName extends Field {
+    override val name: String = "short_name"
+  }
+
+  case object LongName extends Field {
+    override val name: String = "long_name"
+  }
+
+  case object PlayerPositions extends Field {
+    override val name: String = "player_positions"
+  }
+
+  case object Overall extends Field {
+    override val name: String = "overall"
+  }
+
+  case object Potential extends Field {
+    override val name: String = "potential"
+  }
+
+  case object NationalityId extends Field {
+    override val name: String = "nationality_id"
+  }
+
+
   case object CatHeight extends Field {
     override val name: String = "cat_height"
 
@@ -24,7 +61,7 @@ package object fields {
     }
   }
 
-  case object ShortName extends Field {
+  """case object ShortName extends Field {
     override val name: String = "short_name"
     def apply(): Column = lit("NewColumnBABY") alias name
   }
@@ -40,7 +77,7 @@ package object fields {
 
       df.select(columnsToSelect: _*)
     }
-  }
+  }"""
 }
 
 

@@ -38,4 +38,14 @@ object StaticVals {
 
   }
 
+  case object JoinTypes {
+    val LeftJoin: String = "left"
+    val OuterJoin: String = "outer"
+    val InnerJoin: String = "inner"
+    val LeftOuter: String = "left_outer"
+    val LeftAnti: String = "left_anti"
+    val LeftSemi: String = "left_semi"
+
+  }
+
 }

@@ -1,10 +1,12 @@
 package com.bbva.datioamproduct.fdevdatio
 
-import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseConfigConstants.{InputTag, NationalitiesTag}
+import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseConfigConstants.{ClubPlayersTag, InputTag, NationalPlayersTag, NationalTeamsTag, NationalitiesTag, PlayersTag}
+import com.bbva.datioamproduct.fdevdatio.common.StaticVals.JoinTypes.{LeftAnti, LeftJoin}
 import com.bbva.datioamproduct.fdevdatio.utils.IOUtils
 import com.typesafe.config.Config
 import org.apache.spark.sql.{Column, DataFrame, functions}
 import org.apache.spark.sql.functions.{col, lit}
+import com.bbva.datioamproduct.fdevdatio.common.fields.{CatHeight, ClubTeamId, LongName, NationTeamId, NationalityId, Overall, PlayerPositions, Potential, ShortName, SofifaId}
 
 import scala.collection.convert.ImplicitConversions.`set asScala`
 
@@ -43,6 +45,15 @@ package object transformations {
           case _@name => col(name)
         }:_*
       )
+    }
+  }
+
+  implicit class MapToDataFrame(dfMap: Map[String, DataFrame]){
+    def getFullDF: DataFrame = {
+      dfMap(PlayersTag)
+        .join(dfMap(ClubPlayersTag), Seq(SofifaId.name, ClubTeamId.name), LeftAnti)
+        .join(dfMap(NationalPlayersTag), Seq(NationTeamId.name, SofifaId.name), LeftJoin)
+        .join(dfMap(NationalTeamsTag), Seq(NationTeamId.name), LeftJoin)
     }
   }
 }

@@ -7,6 +7,4 @@ trait Field {
 
   val name: String
   lazy val column: Column = col(name)
-  def apply(): Column
-
 }
