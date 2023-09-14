@@ -2,11 +2,12 @@ package com.bbva.datioamproduct.fdevdatio
 
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseConfigConstants.{ClubPlayersTag, ClubTeamsTag, InputTag, NationalPlayersTag, NationalTeamsTag, NationalitiesTag, PlayersTag}
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.JoinTypes.{LeftAnti, LeftJoin}
+import com.bbva.datioamproduct.fdevdatio.common.fields.PlayersPositions.{CountByPlayerPositions, ExplodePlayerPositions}
 import com.bbva.datioamproduct.fdevdatio.utils.IOUtils
 import com.typesafe.config.Config
 import org.apache.spark.sql.{Column, DataFrame, functions}
 import org.apache.spark.sql.functions.{col, lit}
-import com.bbva.datioamproduct.fdevdatio.common.fields.{CatHeight, ClubTeamId, LongName, NationTeamId, NationalityId, Overall, PlayerPositions, Potential, ShortName, SofifaId}
+import com.bbva.datioamproduct.fdevdatio.common.fields.{CatHeight, ClubTeamId, LongName, NationTeamId, NationalityId, NationalityName, Overall, OverallByNationality, PlayerByNationality, PlayersPositions, Potential, ShortName, SofifaId}
 import org.apache.spark.sql.catalyst.expressions.NamedExpression
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -16,7 +17,7 @@ package object transformations {
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   implicit class TransformationDF(df: DataFrame) {
-    def getMinContractYear(): Int = {
+    def getMinContractYear: Int = {
       df.rdd
         .map(row => row.getInt(6))
         .reduce((a, b) => if (a > b) b else a)
@@ -26,10 +27,24 @@ package object transformations {
       val maxContractYear = df.getMinContractYear
       df.filter(col("club_contract_valid_until") === maxContractYear)
     }
+
+    def aggregateExample: DataFrame = {
+      df
+        .groupBy(NationalityName.column)
+        .agg(OverallByNationality(), PlayerByNationality())
+        .orderBy(PlayerByNationality.column.desc)
+    }
+
+    def aggPlayersPositions: DataFrame = {
+      df
+        .groupBy(LongName.column)
+        .agg(PlayersPositions(), ExplodePlayerPositions(), CountByPlayerPositions())
+        .orderBy(CountByPlayerPositions.column.desc)
+    }
   }
 
   implicit class MaxDF(df: DataFrame) {
-    def getMaxLeagueLevel(): Int = {
+    def getMaxLeagueLevel: Int = {
       df.rdd
         .map(row => row.getInt(3))
         .reduce((a, b) => if (a > b) a else b)
@@ -42,7 +57,7 @@ package object transformations {
   }
 
 
-  """def replaceColumn(field: Column): DataFrame = {
+  def replaceColumn(field: Column, df: DataFrame): DataFrame = {
     val columnName: String = field.expr.asInstanceOf[NamedExpression].name
 
     if(df.columns.contains(columnName)) {
@@ -55,7 +70,7 @@ package object transformations {
       logger.error("Error")
     }
     throw new Exception("La columna no puede ser sustituida")
-  }"""
+  }
 
   implicit class MapToDataFrame(dfMap: Map[String, DataFrame]) {
     case class JoinException(expectedKeys: Array[String],
@@ -89,10 +104,21 @@ package object transformations {
 
       } else {
         dfMap(PlayersTag)
-          .join(dfMap(ClubPlayersTag), Seq(SofifaId.name, ClubTeamId.name), LeftAnti)
+          .join(dfMap(ClubPlayersTag), Seq(SofifaId.name, ClubTeamId.name), LeftJoin)
+          .join(dfMap(ClubTeamsTag), Seq(ClubTeamId.name), LeftJoin)
           .join(dfMap(NationalPlayersTag), Seq(NationTeamId.name, SofifaId.name), LeftJoin)
-          .join(dfMap(NationalTeamsTag), Seq(NationTeamId.name), LeftJoin)
+          .join(dfMap(NationalitiesTag), Seq(NationTeamId.name), LeftJoin)
       }
+    }
+  }
+
+  implicit class MapDF(dfMap: Map[String, DataFrame]) {
+    def getAllDF: DataFrame = {
+      dfMap(PlayersTag)
+        .join(dfMap(ClubPlayersTag), Seq(SofifaId.name, ClubTeamId.name), LeftJoin)
+        .join(dfMap(ClubTeamsTag), Seq(ClubTeamId.name), LeftJoin)
+        .join(dfMap(NationalPlayersTag), Seq(NationTeamId.name, SofifaId.name), LeftJoin)
+        .join(dfMap(NationalitiesTag), Seq(NationalityId.name), LeftJoin)
     }
   }
 }

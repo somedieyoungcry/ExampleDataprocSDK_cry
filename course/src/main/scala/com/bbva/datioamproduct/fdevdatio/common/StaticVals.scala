@@ -48,4 +48,9 @@ object StaticVals {
 
   }
 
+  case object SeparateValues {
+    val Comma: String = ","
+
+  }
+
 }

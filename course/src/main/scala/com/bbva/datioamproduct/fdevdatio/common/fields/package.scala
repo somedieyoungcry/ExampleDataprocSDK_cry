@@ -2,9 +2,10 @@ package com.bbva.datioamproduct.fdevdatio.common
 
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.AlphabeticConstants.{AChar, BChar, CChar, DChar, EChar}
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseInt.{OneHEF, OneHSF, OneHSixF, TwoH}
+import com.bbva.datioamproduct.fdevdatio.common.StaticVals.SeparateValues.Comma
 import org.apache.spark.sql.catalyst.expressions.NamedExpression
 import org.apache.spark.sql.{Column, DataFrame}
-import org.apache.spark.sql.functions.{col, lit, when}
+import org.apache.spark.sql.functions.{avg, count, explode, regexp_replace, split, trim, when}
 
 package object fields {
 
@@ -36,10 +37,6 @@ package object fields {
     override val name: String = "long_name"
   }
 
-  case object PlayerPositions extends Field {
-    override val name: String = "player_positions"
-  }
-
   case object Overall extends Field {
     override val name: String = "overall"
   }
@@ -52,7 +49,45 @@ package object fields {
     override val name: String = "nationality_id"
   }
 
-  case object CatAge extends Field{
+  case object NationalityName extends Field {
+    override val name: String = "nationality_name"
+  }
+
+  case object PlayerByNationality extends Field {
+    override val name: String = "players_by_nationality"
+    def apply(): Column = count(Overall.column) alias name
+  }
+
+  case object OverallByNationality extends Field {
+    override val name: String = "overall_by_nationality"
+
+    def apply(): Column = avg(Overall.column) alias name
+  }
+
+  case object PlayersPositions extends Field {
+    override val name: String = "player_positions"
+
+    def apply(): Column = {
+      split(trim(column), Comma) alias name
+    }
+
+
+    case object ExplodePlayerPositions extends Field {
+      override val name: String = "explode_player_positions"
+
+      def apply(): Column = explode(PlayersPositions.column) alias name
+    }
+
+    case object CountByPlayerPositions extends Field {
+      override val name: String = "count_by_position"
+
+      def apply(): Column = count(ExplodePlayerPositions.column) alias name
+    }
+  }
+
+
+
+    case object CatAge extends Field{
     override val name: String = "cat_age"
     def apply(): Column = {
       when(Age.column <= 20 || Overall.column > 80, AChar)
