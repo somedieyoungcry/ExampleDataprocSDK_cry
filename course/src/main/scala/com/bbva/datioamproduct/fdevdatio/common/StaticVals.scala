@@ -50,7 +50,15 @@ object StaticVals {
 
   case object SeparateValues {
     val Comma: String = ","
+  }
 
+  case object FilterValues {
+    val EnglishPremierLeague: String = "English Premier League"
+    val ST: String = "ST"
+    val MexicanLigueMX: String = "Mexican Liga MX"
+    val SofifaFilterValue: Int = 189596
+    val Mexico: String = "Mexico"
+    val ClubNecaxa: String = "Club Necaxa"
   }
 
 }

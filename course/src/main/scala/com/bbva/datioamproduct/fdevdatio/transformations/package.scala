@@ -1,19 +1,20 @@
 package com.bbva.datioamproduct.fdevdatio
 
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.CourseConfigConstants.{ClubPlayersTag, ClubTeamsTag, InputTag, NationalPlayersTag, NationalTeamsTag, NationalitiesTag, PlayersTag}
+import com.bbva.datioamproduct.fdevdatio.common.StaticVals.FilterValues.{EnglishPremierLeague, MexicanLigueMX, ST}
 import com.bbva.datioamproduct.fdevdatio.common.StaticVals.JoinTypes.{LeftAnti, LeftJoin}
-import com.bbva.datioamproduct.fdevdatio.common.fields.PlayersPositions.{CountByPlayerPositions, ExplodePlayerPositions}
 import com.bbva.datioamproduct.fdevdatio.utils.IOUtils
 import com.typesafe.config.Config
 import org.apache.spark.sql.{Column, DataFrame, functions}
 import org.apache.spark.sql.functions.{col, lit}
-import com.bbva.datioamproduct.fdevdatio.common.fields.{CatHeight, ClubTeamId, LongName, NationTeamId, NationalityId, NationalityName, Overall, OverallByNationality, PlayerByNationality, PlayersPositions, Potential, ShortName, SofifaId}
+import com.bbva.datioamproduct.fdevdatio.common.fields.{CatHeight, ClubName, ClubTeamId, CountByPlayersPositions, ExplodePlayerPosition, LeagueName, LeagueNameOverall, LongName, NationTeamId, NationalityId, NationalityName, Overall, OverallByNationality, PlayerByNationality, Potential, ShortName, SofifaId}
 import org.apache.spark.sql.catalyst.expressions.NamedExpression
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.convert.ImplicitConversions.`set asScala`
 
 package object transformations {
+  case class ReplaceColumnException(message: String, columnName: String, columns: Array[String]) extends Exception(message)
   private val logger: Logger = LoggerFactory.getLogger(this.getClass)
 
   implicit class TransformationDF(df: DataFrame) {
@@ -35,11 +36,54 @@ package object transformations {
         .orderBy(PlayerByNationality.column.desc)
     }
 
-    def aggPlayersPositions: DataFrame = {
-      df
-        .groupBy(LongName.column)
-        .agg(PlayersPositions(), ExplodePlayerPositions(), CountByPlayerPositions())
-        .orderBy(CountByPlayerPositions.column.desc)
+    @throws[Exception]
+    def addColumn(newColumn: Column): DataFrame = {
+      try {
+        val columns: Array[Column] = df.columns.map(col) :+ newColumn
+        df.select(columns: _*)
+      } catch {
+        case exception: Exception => throw exception
+      }
+    }
+
+
+    @throws[ReplaceColumnException]
+    def replaceColumn(field: Column): DataFrame = {
+      val columnName: String = field.expr.asInstanceOf[NamedExpression].name
+
+      if (df.columns.contains(columnName)) {
+        val columns: Array[Column] = df.columns.map {
+
+          case column: String if column == columnName => field
+          case _@column => col(column)
+
+        }.toArray
+
+        df.select(columns: _*)
+      } else {
+        val message: String = s"La columna $columnName, no puede ser remplazada}."
+
+        throw new ReplaceColumnException(message, columnName, df.columns)
+
+      }
+    }
+
+    def agregatePlayerPositions: DataFrame = {
+      df.groupBy(ExplodePlayerPosition.column)
+        .agg(CountByPlayersPositions())
+    }
+
+    def aggregateAverageLeague: DataFrame = {
+      df.groupBy(ExplodePlayerPosition.column, LeagueName.column)
+        .agg(LeagueNameOverall())
+        .where(LeagueName.column === EnglishPremierLeague && ExplodePlayerPosition.column === ST)
+    }
+
+    def aggregateBestAverageMXLeague: DataFrame = {
+      df.groupBy(ClubName.column, ExplodePlayerPosition.column, LeagueName.column)
+        .agg(LeagueNameOverall())
+        .where(LeagueName.column === MexicanLigueMX)
+        .orderBy(LeagueNameOverall.column.desc)
     }
   }
 
